@@ -1,0 +1,1107 @@
+/* ==========================================================================
+   Buku Yasin Digital - Desain Khidmat & Tenang
+   Mengikuti Panduan DESIGN.md dan antislop-ui
+   ========================================================================== */
+
+:root {
+  /* Palet Warna Alami & Bermartabat */
+  --bg-parchment: #F7F4EE;
+  --bg-parchment-soft: #F0EAE1;
+  --bg-surface: #FFFFFF;
+  --primary-deep-green: #162E24;
+  --primary-green-hover: #1F3F32;
+  --primary-green-light: #284D3E;
+  --text-ink: #1A1E1C;
+  --text-muted: #5C635F;
+  --border-stone: #E0D7C9;
+  --border-stone-light: #ECE5DA;
+  --accent-gold: #B88B4A;
+  --accent-gold-hover: #A17539;
+  --accent-gold-soft: rgba(184, 139, 74, 0.12);
+  --danger-crimson: #9B2C2C;
+  --danger-bg: #FFF5F5;
+
+  /* Tipografi */
+  --font-arabic: 'Amiri', serif;
+  --font-ui: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+
+  /* Elevasi dan Bayangan Buku */
+  --shadow-subtle: 0 2px 8px rgba(22, 46, 36, 0.06);
+  --shadow-book: 0 16px 36px rgba(22, 46, 36, 0.15), 0 2px 6px rgba(0, 0, 0, 0.06);
+  --shadow-modal: 0 24px 48px rgba(22, 46, 36, 0.22);
+
+  /* Radius Terukur */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+
+  /* Ukuran Sentuh Minimal (antislop-layoutmobile) */
+  --min-tap-target: 44px;
+}
+
+/* Reset Dasar */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  background-color: var(--bg-parchment);
+  color: var(--text-ink);
+  font-family: var(--font-ui);
+  line-height: 1.5;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Aksesibilitas: Indikator Fokus Keyboard */
+:focus-visible {
+  outline: 2px solid var(--accent-gold);
+  outline-offset: 3px;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.hidden {
+  display: none !important;
+}
+
+/* Tata Letak Utama */
+.app-layout {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+  background-color: var(--bg-parchment);
+}
+
+/* ==========================================================================
+   Bilah Atas (Header Navigasi)
+   ========================================================================== */
+
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 18px;
+  background-color: var(--primary-deep-green);
+  color: #FFFFFF;
+  border-bottom: 1px solid rgba(184, 139, 74, 0.3);
+  z-index: 30;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.header-left {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.brand-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.icon-brand {
+  color: var(--accent-gold);
+  flex-shrink: 0;
+}
+
+.brand-title {
+  font-family: var(--font-arabic);
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: #FFFFFF;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.brand-dedication {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.72);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.header-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.control-group {
+  display: flex;
+  align-items: center;
+  background-color: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: var(--radius-sm);
+  padding: 2px;
+  gap: 2px;
+}
+
+/* Tombol Kontrol */
+.btn-control {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 38px;
+  padding: 0 10px;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.9);
+  border: none;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-ui);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.btn-control:hover {
+  background-color: rgba(255, 255, 255, 0.15);
+  color: #FFFFFF;
+}
+
+.btn-control.active {
+  background-color: var(--accent-gold);
+  color: #162E24;
+  font-weight: 600;
+}
+
+.btn-icon-only {
+  min-width: 38px;
+  width: 38px;
+  padding: 0;
+}
+
+.btn-zoom-level {
+  min-width: 48px;
+  font-variant-numeric: tabular-nums;
+  font-size: 0.75rem;
+}
+
+/* ==========================================================================
+   Area Pandang Pembaca (Viewport)
+   ========================================================================== */
+
+.reader-viewport {
+  position: relative;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background-color: var(--bg-parchment);
+  user-select: none;
+}
+
+/* State Tampilan: Loading, Empty, Error */
+.reader-state {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background-color: var(--bg-parchment);
+  z-index: 25;
+}
+
+.state-card {
+  max-width: 440px;
+  width: 100%;
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-stone);
+  border-radius: var(--radius-md);
+  padding: 32px 28px;
+  text-align: center;
+  box-shadow: var(--shadow-subtle);
+}
+
+.loader-spinner {
+  width: 42px;
+  height: 42px;
+  margin: 0 auto 16px auto;
+  border: 3px solid var(--border-stone);
+  border-top-color: var(--primary-deep-green);
+  border-radius: 50%;
+  animation: spin 0.9s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.state-title {
+  font-family: var(--font-arabic);
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--primary-deep-green);
+  margin-bottom: 8px;
+}
+
+.state-desc {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  margin-bottom: 20px;
+  line-height: 1.5;
+}
+
+.progress-bar-track {
+  width: 100%;
+  height: 6px;
+  background-color: var(--bg-parchment-soft);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  background-color: var(--accent-gold);
+  transition: width 0.25s ease;
+}
+
+.state-icon {
+  margin: 0 auto 16px auto;
+  color: var(--accent-gold);
+}
+
+.state-icon.error-icon {
+  color: var(--danger-crimson);
+}
+
+.state-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+/* ==========================================================================
+   Wadah Flipbook & Efek Buku
+   ========================================================================== */
+
+.flipbook-wrapper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px;
+  overflow: hidden;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.flipbook-container {
+  position: relative;
+  margin: auto;
+  box-shadow: var(--shadow-book);
+  background-color: transparent;
+  border-radius: 4px;
+  transition: transform 0.2s ease;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* PageFlip Canvas Rendering */
+.stf__parent {
+  position: relative;
+  display: block;
+  box-sizing: border-box;
+  transform: translateZ(0);
+  touch-action: none !important;
+}
+
+.sft__wrapper,
+.stf__wrapper {
+  position: relative;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.stf__parent canvas {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  left: 0;
+  top: 0;
+}
+
+.stf__canvas {
+  display: block;
+  box-shadow: var(--shadow-book);
+  border-radius: 4px;
+}
+
+/* Tombol Navigasi Mengambang Kiri & Kanan */
+.btn-nav-floating {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 52px;
+  height: 52px;
+  min-width: var(--min-tap-target);
+  min-height: var(--min-tap-target);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(22, 46, 36, 0.85);
+  color: #FFFFFF;
+  border: 1px solid rgba(184, 139, 74, 0.4);
+  border-radius: 50%;
+  cursor: pointer;
+  z-index: 20;
+  transition: background-color 0.2s ease, transform 0.2s ease, opacity 0.2s ease;
+  backdrop-filter: blur(4px);
+}
+
+.btn-nav-floating:hover {
+  background-color: var(--primary-deep-green);
+  transform: translateY(-50%) scale(1.08);
+}
+
+.btn-nav-floating:disabled {
+  opacity: 0.25;
+  cursor: not-allowed;
+  transform: translateY(-50%);
+}
+
+.btn-nav-prev {
+  left: 18px;
+}
+
+.btn-nav-next {
+  right: 18px;
+}
+
+/* ==========================================================================
+   Mode Geser Vertikal (Scroll)
+   ========================================================================== */
+
+.scroll-wrapper {
+  width: 100%;
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 24px 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  scroll-behavior: smooth;
+}
+
+.scroll-pages-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  max-width: 680px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.scroll-page-item {
+  background-color: #FFFFFF;
+  border: 1px solid var(--border-stone);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-subtle);
+  overflow: hidden;
+  position: relative;
+}
+
+.scroll-page-item canvas,
+.scroll-page-item img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.scroll-page-number {
+  position: absolute;
+  bottom: 8px;
+  right: 12px;
+  font-size: 0.75rem;
+  background-color: rgba(22, 46, 36, 0.75);
+  color: #FFFFFF;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+/* ==========================================================================
+   Bilah Bawah (Footer Navigasi & Cuplikan)
+   ========================================================================== */
+
+.app-footer {
+  display: flex;
+  flex-direction: column;
+  background-color: #FFFFFF;
+  border-top: 1px solid var(--border-stone);
+  z-index: 30;
+  flex-shrink: 0;
+}
+
+.footer-navigation {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 16px;
+  gap: 14px;
+  position: relative;
+}
+
+.btn-nav-step {
+  min-height: 40px;
+  padding: 0 14px;
+  background-color: var(--bg-parchment-soft);
+  color: var(--primary-deep-green);
+  border: 1px solid var(--border-stone);
+  font-weight: 600;
+}
+
+.btn-nav-step:hover {
+  background-color: var(--border-stone);
+  color: var(--primary-deep-green);
+}
+
+.btn-nav-step:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.page-counter-box {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.875rem;
+  color: var(--text-ink);
+  font-weight: 500;
+}
+
+.input-jump-page {
+  width: 52px;
+  height: 36px;
+  text-align: center;
+  border: 1px solid var(--border-stone);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-ui);
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--primary-deep-green);
+  background-color: var(--bg-parchment);
+}
+
+.btn-toggle-thumbnails {
+  position: absolute;
+  right: 16px;
+  background-color: var(--bg-parchment-soft);
+  color: var(--primary-deep-green);
+  border: 1px solid var(--border-stone);
+}
+
+/* Laci Cuplikan (Thumbnails Drawer) */
+.thumbnails-drawer {
+  background-color: var(--bg-parchment);
+  border-top: 1px solid var(--border-stone);
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 220px;
+}
+
+.thumbnails-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.thumbnails-heading {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.thumbnails-list {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  padding: 4px 2px 10px 2px;
+  scroll-behavior: smooth;
+}
+
+.thumbnail-card {
+  flex: 0 0 95px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  background-color: #FFFFFF;
+  border: 2px solid transparent;
+  border-radius: var(--radius-sm);
+  padding: 4px;
+  cursor: pointer;
+  transition: border-color 0.15s ease, transform 0.15s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.thumbnail-card:hover {
+  border-color: var(--border-stone);
+  transform: translateY(-2px);
+}
+
+.thumbnail-card.active {
+  border-color: var(--accent-gold);
+  background-color: var(--accent-gold-soft);
+}
+
+.thumbnail-preview {
+  width: 100%;
+  height: 120px;
+  background-color: var(--bg-parchment-soft);
+  border-radius: 3px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.thumbnail-preview img,
+.thumbnail-preview canvas {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.thumbnail-number {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-ink);
+}
+
+/* ==========================================================================
+   Komponen Tombol Universal
+   ========================================================================== */
+
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: var(--min-tap-target);
+  padding: 0 20px;
+  background-color: var(--primary-deep-green);
+  color: #FFFFFF;
+  border: 1px solid var(--accent-gold);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-ui);
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.btn-primary:hover {
+  background-color: var(--primary-green-hover);
+}
+
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: var(--min-tap-target);
+  padding: 0 16px;
+  background-color: #FFFFFF;
+  color: var(--primary-deep-green);
+  border: 1px solid var(--border-stone);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-ui);
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.btn-secondary:hover {
+  background-color: var(--bg-parchment-soft);
+}
+
+.btn-text-danger {
+  background: transparent;
+  color: var(--danger-crimson);
+  border: none;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 6px;
+}
+
+.btn-icon-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+.btn-icon-close:hover {
+  background-color: var(--bg-parchment-soft);
+  color: var(--text-ink);
+}
+
+/* ==========================================================================
+   Jendela Modal Dialog (Accessible Modals)
+   ========================================================================== */
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(22, 46, 36, 0.65);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  z-index: 100;
+  backdrop-filter: blur(3px);
+}
+
+.modal-window {
+  background-color: #FFFFFF;
+  border: 1px solid var(--border-stone);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-modal);
+  width: 100%;
+  max-width: 520px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: modalEnter 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.modal-window-large {
+  max-width: 720px;
+}
+
+@keyframes modalEnter {
+  from {
+    opacity: 0;
+    transform: scale(0.97) translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 24px;
+  border-bottom: 1px solid var(--border-stone-light);
+  background-color: var(--bg-parchment);
+}
+
+.modal-title {
+  font-family: var(--font-arabic);
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--primary-deep-green);
+}
+
+.modal-body {
+  padding: 24px;
+  overflow-y: auto;
+}
+
+.modal-subtitle {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+  margin-bottom: 20px;
+}
+
+/* Modal QR Code Khusus */
+.modal-qr-body {
+  text-align: center;
+}
+
+.qr-canvas-wrapper {
+  display: inline-flex;
+  padding: 12px;
+  background-color: #FFFFFF;
+  border: 1px solid var(--border-stone);
+  border-radius: var(--radius-sm);
+  margin-bottom: 20px;
+}
+
+.qr-canvas {
+  display: block;
+}
+
+.share-url-box {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.input-share-url {
+  flex: 1;
+  height: var(--min-tap-target);
+  padding: 0 12px;
+  font-size: 0.8125rem;
+  background-color: var(--bg-parchment);
+  border: 1px solid var(--border-stone);
+  border-radius: var(--radius-sm);
+  color: var(--text-ink);
+}
+
+.modal-qr-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* ==========================================================================
+   Admin Modal Styling
+   ========================================================================== */
+
+.admin-auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.form-label {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--primary-deep-green);
+}
+
+.form-input {
+  height: var(--min-tap-target);
+  padding: 0 14px;
+  font-size: 0.9375rem;
+  font-family: var(--font-ui);
+  background-color: var(--bg-parchment);
+  border: 1px solid var(--border-stone);
+  border-radius: var(--radius-sm);
+  color: var(--text-ink);
+}
+
+.form-hint {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.form-error-msg {
+  padding: 10px 14px;
+  background-color: var(--danger-bg);
+  border: 1px solid rgba(155, 44, 44, 0.25);
+  border-radius: var(--radius-sm);
+  color: var(--danger-crimson);
+  font-size: 0.8125rem;
+}
+
+.admin-tabs-nav {
+  display: flex;
+  border-bottom: 1px solid var(--border-stone);
+  margin-bottom: 20px;
+}
+
+.tab-item {
+  padding: 10px 16px;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  font-family: var(--font-ui);
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.tab-item.active {
+  color: var(--primary-deep-green);
+  border-bottom-color: var(--accent-gold);
+}
+
+/* Area Tarik & Lepas Berkas (Dropzone) */
+.upload-dropzone {
+  border: 2px dashed var(--border-stone);
+  border-radius: var(--radius-md);
+  padding: 32px 20px;
+  text-align: center;
+  background-color: var(--bg-parchment);
+  transition: border-color 0.2s ease, background-color 0.2s ease;
+  margin-bottom: 20px;
+}
+
+.upload-dropzone.dragover {
+  border-color: var(--accent-gold);
+  background-color: var(--accent-gold-soft);
+}
+
+.dropzone-icon {
+  margin: 0 auto 12px auto;
+  color: var(--primary-deep-green);
+}
+
+.dropzone-title {
+  font-weight: 600;
+  color: var(--primary-deep-green);
+  margin-bottom: 4px;
+}
+
+.dropzone-desc {
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+  margin-bottom: 16px;
+}
+
+/* Panel Pratinjau Tiga Titik */
+.preview-section {
+  border-top: 1px solid var(--border-stone);
+  padding-top: 20px;
+  margin-top: 20px;
+}
+
+.preview-heading {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--primary-deep-green);
+  margin-bottom: 12px;
+}
+
+.doc-info-badges {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.info-badge {
+  display: flex;
+  gap: 6px;
+  padding: 6px 12px;
+  background-color: var(--bg-parchment-soft);
+  border: 1px solid var(--border-stone);
+  border-radius: var(--radius-sm);
+  font-size: 0.8125rem;
+}
+
+.badge-label {
+  color: var(--text-muted);
+}
+
+.badge-value {
+  font-weight: 600;
+  color: var(--primary-deep-green);
+}
+
+.sample-inspection-note {
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+  margin-bottom: 14px;
+}
+
+.preview-triad-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  margin-bottom: 24px;
+}
+
+.preview-triad-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  background-color: var(--bg-parchment);
+  border: 1px solid var(--border-stone);
+  border-radius: var(--radius-sm);
+  padding: 8px;
+}
+
+.card-caption {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--primary-deep-green);
+}
+
+.triad-canvas {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1 / 1.414;
+  background-color: #FFFFFF;
+  border: 1px solid var(--border-stone-light);
+  border-radius: 3px;
+  object-fit: contain;
+}
+
+.publish-action-box {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 16px;
+}
+
+.reset-box {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background-color: var(--bg-parchment-soft);
+  border-radius: var(--radius-sm);
+  margin-top: 16px;
+}
+
+.reset-desc {
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+}
+
+/* Notifikasi Toast */
+.toast-box {
+  position: fixed;
+  bottom: 68px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: var(--primary-deep-green);
+  color: #FFFFFF;
+  border: 1px solid var(--accent-gold);
+  border-radius: var(--radius-sm);
+  padding: 10px 20px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  box-shadow: var(--shadow-modal);
+  z-index: 120;
+  pointer-events: none;
+  animation: toastFade 0.2s ease;
+}
+
+@keyframes toastFade {
+  from { opacity: 0; transform: translate(-50%, 8px); }
+  to { opacity: 1; transform: translate(-50%, 0); }
+}
+
+/* ==========================================================================
+   Reflow Responsif (antislop-layoutmobile)
+   ========================================================================== */
+
+/* Tablet & Mobile (< 768px) */
+@media (max-width: 768px) {
+  .app-header {
+    padding: 8px 12px;
+  }
+
+  .brand-title {
+    font-size: 1.1rem;
+  }
+
+  .brand-dedication {
+    font-size: 0.7rem;
+  }
+
+  .btn-label-desktop {
+    display: none;
+  }
+
+  .btn-control {
+    padding: 0 8px;
+    min-width: 36px;
+  }
+
+  .btn-nav-floating {
+    display: none !important;
+  }
+
+  .flipbook-wrapper {
+    padding: 6px 2px;
+  }
+
+  .footer-navigation {
+    padding: 6px 10px;
+    justify-content: space-between;
+  }
+
+  .btn-toggle-thumbnails {
+    position: static;
+  }
+
+  .preview-triad-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .reset-box {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+}
+
+/* Ponsel Layar Ramping (< 480px) */
+@media (max-width: 480px) {
+  .zoom-group {
+    display: none; /* Disembunyikan di ponsel sempit agar bilah tidak meluap */
+  }
+
+  .btn-nav-text {
+    display: none;
+  }
+
+  .btn-nav-step {
+    padding: 0 10px;
+  }
+
+  .counter-label {
+    display: none;
+  }
+}
+
+/* Mode Pengurangan Gerakan (Reduced Motion) */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

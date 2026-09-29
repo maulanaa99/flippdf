@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+  <title>Buku Yasin Digital: Bacaan Surat Yasin dan Doa Tahlil</title>
+  <meta name="description"
+    content="Publikasi buku Yasin digital interaktif dengan efek membalik halaman, mode scroll nyaman untuk ponsel, serta kode QR untuk dibagikan.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="/src/style.css">
+</head>
+
+<body>
+  <div id="app" class="app-layout">
+    <!-- Bilah Atas Navigasi dan Kontrol -->
+    <header class="app-header" role="banner">
+      <div class="header-left">
+        <div class="brand-badge">
+          <svg class="icon-brand" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="2" aria-hidden="true">
+            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+            <line x1="9" y1="7" x2="15" y2="7"></line>
+            <line x1="9" y1="11" x2="13" y2="11"></line>
+          </svg>
+          <span class="brand-title" id="displayPubTitle">Surat Yasin &amp; Tahlil</span>
+        </div>
+        <span class="brand-dedication" id="displayPubDedication">Mengenang Almarhum / Almarhumah</span>
+      </div>
+
+      <!-- Bilah Kontrol Utama -->
+      <nav class="header-controls" aria-label="Kontrol Pembaca">
+        <!-- Pengalih Tampilan (Flipbook vs Scroll) -->
+        <div class="control-group view-mode-group" role="group" aria-label="Mode Tampilan">
+          <button id="btnModeFlip" class="btn-control active" type="button" aria-pressed="true"
+            title="Mode Balik Halaman (Flipbook)">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              aria-hidden="true">
+              <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
+              <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
+            </svg>
+            <span class="btn-label-desktop">Flipbook</span>
+          </button>
+          <button id="btnModeScroll" class="btn-control" type="button" aria-pressed="false"
+            title="Mode Geser Vertikal (Scroll)">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              aria-hidden="true">
+              <rect x="5" y="2" width="14" height="20" rx="2"></rect>
+              <line x1="9" y1="6" x2="15" y2="6"></line>
+              <line x1="9" y1="10" x2="15" y2="10"></line>
+              <line x1="9" y1="14" x2="15" y2="14"></line>
+            </svg>
+            <span class="btn-label-desktop">Scroll</span>
+          </button>
+        </div>
+
+        <!-- Kontrol Zoom -->
+        <div class="control-group zoom-group" role="group" aria-label="Pengaturan Zoom">
+          <button id="btnZoomOut" class="btn-control btn-icon-only" type="button" title="Perkecil Tampilan"
+            aria-label="Perkecil Tampilan">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              aria-hidden="true">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              <line x1="8" y1="11" x2="14" y2="11"></line>
+            </svg>
+          </button>
+          <button id="btnZoomReset" class="btn-control btn-zoom-level" type="button" title="Atur Ulang Zoom ke 100%"
+            aria-label="Tingkat zoom saat ini">
+            <span id="zoomLevelText">100%</span>
+          </button>
+          <button id="btnZoomIn" class="btn-control btn-icon-only" type="button" title="Perbesar Tampilan"
+            aria-label="Perbesar Tampilan">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              aria-hidden="true">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              <line x1="11" y1="8" x2="11" y2="14"></line>
+              <line x1="8" y1="11" x2="14" y2="11"></line>
+            </svg>
+          </button>
+        </div>
+
+        <!-- Tombol Aksi Tambahan -->
+        <div class="control-group action-group">
+          <!-- Suara Lembaran -->
+          <button id="btnToggleAudio" class="btn-control btn-icon-only" type="button"
+            title="Bungkam atau Aktifkan Suara Kertas" aria-label="Suara Kertas">
+            <svg id="iconAudioOn" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+              stroke-width="2" aria-hidden="true">
+              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+              <path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
+              <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+            </svg>
+            <svg id="iconAudioOff" class="hidden" width="18" height="18" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+              <line x1="23" y1="9" x2="17" y2="15"></line>
+              <line x1="17" y1="9" x2="23" y2="15"></line>
+            </svg>
+          </button>
+
+          <!-- Kode QR & Berbagi -->
+          <button id="btnOpenQrModal" class="btn-control" type="button" title="Buka Kode QR dan Tautan Berbagi"
+            aria-label="Buka Kode QR dan Tautan Berbagi">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              aria-hidden="true">
+              <rect x="3" y="3" width="7" height="7"></rect>
+              <rect x="14" y="3" width="7" height="7"></rect>
+              <rect x="14" y="14" width="7" height="7"></rect>
+              <rect x="3" y="14" width="7" height="7"></rect>
+              <line x1="7" y1="7" x2="7.01" y2="7"></line>
+              <line x1="18" y1="7" x2="18.01" y2="7"></line>
+              <line x1="7" y1="18" x2="7.01" y2="18"></line>
+              <line x1="18" y1="18" x2="18.01" y2="18"></line>
+            </svg>
+            <span class="btn-label-desktop">Kode QR</span>
+          </button>
+
+          <!-- Layar Penuh -->
+          <button id="btnToggleFullscreen" class="btn-control btn-icon-only" type="button" title="Mode Layar Penuh"
+            aria-label="Layar Penuh">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              aria-hidden="true">
+              <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3">
+              </path>
+            </svg>
+          </button>
+
+          <!-- Kelola PDF (Admin) -->
+          <button id="btnOpenAdminModal" class="btn-control btn-icon-only" type="button"
+            title="Pengaturan Dokumen dan Pengelola" aria-label="Kelola Dokumen PDF">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              aria-hidden="true">
+              <circle cx="12" cy="12" r="3"></circle>
+              <path
+                d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z">
+              </path>
+            </svg>
+          </button>
+        </div>
+      </nav>
+    </header>
+
+    <!-- Area Konten Utama Pembaca -->
+    <main class="reader-viewport" id="readerViewport" role="main" aria-label="Halaman Buku Yasin">
+      <!-- State 1: Indikator Pemuatan (Loading State) -->
+      <div id="stateLoading" class="reader-state state-loading" role="status" aria-live="polite">
+        <div class="state-card">
+          <div class="loader-spinner" aria-hidden="true"></div>
+          <h2 class="state-title">Menyiapkan Lembaran Buku</h2>
+          <p id="loadingStatusText" class="state-desc">Memuat halaman sampul dan mempersiapkan tampilan...</p>
+          <div class="progress-bar-track">
+            <div id="loadingProgressBar" class="progress-bar-fill" style="width: 20%;"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- State 2: Kondisi Kosong (Empty State) -->
+      <div id="stateEmpty" class="reader-state state-empty hidden" role="region" aria-label="Dokumen Belum Tersedia">
+        <div class="state-card">
+          <svg class="state-icon" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="1.5" aria-hidden="true">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+            <polyline points="14 2 14 8 20 8"></polyline>
+            <line x1="12" y1="18" x2="12" y2="12"></line>
+            <line x1="9" y1="15" x2="15" y2="15"></line>
+          </svg>
+          <h2 class="state-title">Berkas PDF Belum Tersedia</h2>
+          <p class="state-desc">Silakan unggah dokumen PDF buku Yasin atau muat berkas contoh bawaan melalui tombol di
+            bawah ini.</p>
+          <div class="state-actions">
+            <button id="btnLoadDefaultSample" class="btn-primary" type="button">Muat Contoh Bawaan</button>
+            <button id="btnEmptyOpenAdmin" class="btn-secondary" type="button">Unggah PDF Admin</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- State 3: Kondisi Galat (Error State) -->
+      <div id="stateError" class="reader-state state-error hidden" role="alert">
+        <div class="state-card">
+          <svg class="state-icon error-icon" width="48" height="48" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="8" x2="12" y2="12"></line>
+            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+          </svg>
+          <h2 class="state-title">Terjadi Kendala Memuat Dokumen</h2>
+          <p id="errorMessageText" class="state-desc">Format berkas tidak sesuai atau koneksi terputus saat memuat
+            halaman.</p>
+          <div class="state-actions">
+            <button id="btnRetryLoad" class="btn-primary" type="button">Muat Ulang Halaman</button>
+            <button id="btnErrorResetDefault" class="btn-secondary" type="button">Kembalikan ke Berkas Bawaan</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tampilan Pembaca: Mode Flipbook -->
+      <div id="flipbookWrapper" class="flipbook-wrapper">
+        <!-- Tombol Panah Navigasi Mengambang Kiri -->
+        <button id="btnPrevPageFloating" class="btn-nav-floating btn-nav-prev" type="button"
+          aria-label="Halaman Sebelumnya" title="Halaman Sebelumnya (Panah Kiri)">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+            aria-hidden="true">
+            <polyline points="15 18 9 12 15 6"></polyline>
+          </svg>
+        </button>
+
+        <!-- Wadah Interaktif PageFlip -->
+        <div id="flipbookContainer" class="flipbook-container" tabindex="0" role="region" aria-label="Buku Flipbook">
+        </div>
+
+        <!-- Tombol Panah Navigasi Mengambang Kanan -->
+        <button id="btnNextPageFloating" class="btn-nav-floating btn-nav-next" type="button"
+          aria-label="Halaman Berikutnya" title="Halaman Berikutnya (Panah Kanan)">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+            aria-hidden="true">
+            <polyline points="9 18 15 12 9 6"></polyline>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Tampilan Pembaca: Mode Geser Vertikal (Scroll) -->
+      <div id="scrollWrapper" class="scroll-wrapper hidden" role="region" aria-label="Daftar Halaman Geser Vertikal">
+        <div id="scrollPagesList" class="scroll-pages-list"></div>
+      </div>
+    </main>
+
+    <!-- Bilah Bawah Navigasi Halaman dan Bilah Cuplikan (Thumbnails) -->
+    <footer class="app-footer" role="contentinfo">
+      <div class="footer-navigation">
+        <button id="btnPrevPageFooter" class="btn-control btn-nav-step" type="button" aria-label="Halaman Sebelumnya">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            aria-hidden="true">
+            <polyline points="15 18 9 12 15 6"></polyline>
+          </svg>
+          <span class="btn-nav-text">Sebelumnya</span>
+        </button>
+
+        <!-- Formulir Lompat Halaman Cepat -->
+        <div class="page-counter-box" role="status">
+          <label for="inputJumpPage" class="sr-only">Nomor Halaman</label>
+          <span class="counter-label">Halaman</span>
+          <input type="number" id="inputJumpPage" class="input-jump-page" min="1" max="1" value="1"
+            aria-label="Ketik nomor halaman lalu tekan Enter">
+          <span class="counter-separator">dari</span>
+          <span id="totalPagesText" class="counter-total">1</span>
+        </div>
+
+        <button id="btnNextPageFooter" class="btn-control btn-nav-step" type="button" aria-label="Halaman Berikutnya">
+          <span class="btn-nav-text">Berikutnya</span>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            aria-hidden="true">
+            <polyline points="9 18 15 12 9 6"></polyline>
+          </svg>
+        </button>
+
+        <!-- Tombol Tampilkan Cuplikan (Thumbnail) -->
+        <button id="btnToggleThumbnails" class="btn-control btn-toggle-thumbnails" type="button" aria-expanded="false"
+          aria-controls="thumbnailsDrawer" title="Tampilkan atau sembunyikan cuplikan lembaran">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            aria-hidden="true">
+            <rect x="3" y="3" width="7" height="7"></rect>
+            <rect x="14" y="3" width="7" height="7"></rect>
+            <rect x="14" y="14" width="7" height="7"></rect>
+            <rect x="3" y="14" width="7" height="7"></rect>
+          </svg>
+          <span>Cuplikan</span>
+        </button>
+      </div>
+
+      <!-- Laci Lembar Cuplikan Halaman (Thumbnails Drawer) -->
+      <div id="thumbnailsDrawer" class="thumbnails-drawer hidden" role="region" aria-label="Daftar Cuplikan Halaman">
+        <div class="thumbnails-header">
+          <span class="thumbnails-heading">Pilih Halaman Cepat</span>
+          <button id="btnCloseThumbnails" class="btn-icon-close" type="button" aria-label="Tutup Cuplikan">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              aria-hidden="true">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+        <div id="thumbnailsList" class="thumbnails-list" tabindex="0" role="list"></div>
+      </div>
+    </footer>
+
+    <!-- MODAL 1: Kode QR dan Tautan Publik (Sesuai YAS-06) -->
+    <div id="modalQr" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="modalQrTitle">
+      <div class="modal-window">
+        <div class="modal-header">
+          <h2 id="modalQrTitle" class="modal-title">Tautan Publik dan Kode QR</h2>
+          <button id="btnCloseQrModal" class="btn-icon-close" type="button" aria-label="Tutup Jendela Kode QR">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              aria-hidden="true">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+        <div class="modal-body modal-qr-body">
+          <p class="modal-subtitle">Gunakan kode QR berikut untuk dicetak pada buku yasin fisik atau disebarkan kepada
+            jemaah dan kerabat melalui pesan singkat.</p>
+          <div class="qr-canvas-wrapper">
+            <canvas id="qrCanvas" class="qr-canvas" width="240" height="240"
+              aria-label="Gambar Kode QR Buku Yasin Digital"></canvas>
+          </div>
+          <div class="share-url-box">
+            <input type="text" id="inputShareUrl" class="input-share-url" readonly aria-label="Alamat Tautan Publik">
+            <button id="btnCopyShareUrl" class="btn-secondary" type="button">Salin Tautan</button>
+          </div>
+          <div class="modal-qr-actions">
+            <button id="btnDownloadQr" class="btn-primary" type="button">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                aria-hidden="true">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+              </svg>
+              <span>Unduh Berkas Gambar QR (PNG)</span>
+            </button>
+            <button id="btnNativeShare" class="btn-secondary hidden" type="button">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                aria-hidden="true">
+                <circle cx="18" cy="5" r="3"></circle>
+                <circle cx="6" cy="12" r="3"></circle>
+                <circle cx="18" cy="19" r="3"></circle>
+                <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+                <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+              </svg>
+              <span>Bagikan Langsung</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL 2: Pengelola / Admin PDF (Sesuai YAS-01 dan YAS-08) -->
+    <div id="modalAdmin" class="modal-backdrop hidden" role="dialog" aria-modal="true"
+      aria-labelledby="modalAdminTitle">
+      <div class="modal-window modal-window-large">
+        <div class="modal-header">
+          <h2 id="modalAdminTitle" class="modal-title">Akses Pengelola Publikasi PDF</h2>
+          <button id="btnCloseAdminModal" class="btn-icon-close" type="button" aria-label="Tutup Jendela Admin">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              aria-hidden="true">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+
+        <!-- Langkah 1: Masukkan PIN Admin -->
+        <div id="adminStepAuth" class="modal-body admin-auth-body">
+          <p class="modal-subtitle">Halaman ini diperuntukkan bagi pengelola keluarga atau admin untuk memperbarui
+            berkas PDF buku Yasin. Masukkan PIN keamanan pengelola.</p>
+          <form id="formAdminAuth" class="admin-auth-form" onsubmit="return false;">
+            <div class="form-group">
+              <label for="inputAdminPin" class="form-label">PIN Pengelola</label>
+              <input type="password" id="inputAdminPin" class="form-input" placeholder="Masukkan PIN pengelola"
+                autocomplete="current-password" required maxlength="12">
+            </div>
+            <div id="adminAuthError" class="form-error-msg hidden" role="alert">PIN yang dimasukkan belum tepat. Silakan
+              coba kembali.</div>
+            <button id="btnSubmitAdminAuth" class="btn-primary" type="submit">Buka Pengaturan Publikasi</button>
+          </form>
+        </div>
+
+        <!-- Langkah 2: Panel Pengaturan & Unggah PDF -->
+        <div id="adminStepPanel" class="modal-body admin-panel-body hidden">
+          <div class="admin-tabs-nav" role="tablist">
+            <button id="tabBtnUpload" class="tab-item active" role="tab" aria-selected="true" type="button">Unggah
+              Berkas PDF Baru</button>
+            <button id="tabBtnSettings" class="tab-item" role="tab" aria-selected="false" type="button">Informasi
+              Publikasi &amp; PIN</button>
+          </div>
+
+          <!-- Tab 1: Unggah dan Pratinjau PDF -->
+          <div id="tabContentUpload" class="tab-pane active" role="tabpanel">
+            <div class="upload-dropzone" id="uploadDropzone">
+              <svg class="dropzone-icon" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="1.5" aria-hidden="true">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="17 8 12 3 7 8"></polyline>
+                <line x1="12" y1="3" x2="12" y2="15"></line>
+              </svg>
+              <p class="dropzone-title">Pilih atau Tarik Berkas PDF Buku Yasin ke Sini</p>
+              <p class="dropzone-desc">Format berkas harus berekstensi .pdf (Mendukung hingga 50 MB)</p>
+              <input type="file" id="inputFilePdf" accept="application/pdf" class="sr-only">
+              <button id="btnBrowseFile" class="btn-secondary" type="button">Pilih Berkas dari Komputer</button>
+            </div>
+
+            <!-- Panel Validasi & Pratinjau Tiga Titik Sebelum Publikasi -->
+            <div id="previewSection" class="preview-section hidden">
+              <h3 class="preview-heading">Pemeriksaan dan Pratinjau Sebelum Publikasi</h3>
+              <div class="doc-info-badges">
+                <div class="info-badge">
+                  <span class="badge-label">Nama Berkas:</span>
+                  <span id="previewFileName" class="badge-value">-</span>
+                </div>
+                <div class="info-badge">
+                  <span class="badge-label">Total Halaman:</span>
+                  <span id="previewPageCount" class="badge-value">-</span>
+                </div>
+                <div class="info-badge">
+                  <span class="badge-label">Ukuran Berkas:</span>
+                  <span id="previewFileSize" class="badge-value">-</span>
+                </div>
+              </div>
+
+              <!-- Pratinjau 3 Titik Sesuai PRD Bab 8 -->
+              <p class="sample-inspection-note">Pemeriksaan sampel visual: pastikan kejelasan teks, harakat, dan tata
+                letak pada sampul awal, halaman tengah, dan halaman terakhir.</p>
+              <div class="preview-triad-grid">
+                <div class="preview-triad-card">
+                  <span class="card-caption">Halaman Awal (Sampul)</span>
+                  <canvas id="canvasPreviewFirst" class="triad-canvas" width="160" height="230"></canvas>
+                </div>
+                <div class="preview-triad-card">
+                  <span class="card-caption">Halaman Tengah</span>
+                  <canvas id="canvasPreviewMid" class="triad-canvas" width="160" height="230"></canvas>
+                </div>
+                <div class="preview-triad-card">
+                  <span class="card-caption">Halaman Terakhir</span>
+                  <canvas id="canvasPreviewLast" class="triad-canvas" width="160" height="230"></canvas>
+                </div>
+              </div>
+
+              <div class="publish-action-box">
+                <button id="btnPublishNewPdf" class="btn-primary" type="button">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    aria-hidden="true">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg>
+                  <span>Terbitkan PDF Ini untuk Pembaca</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Bagian Reset Berkas Bawaan -->
+            <div class="reset-box">
+              <span class="reset-desc">Ingin kembali menggunakan berkas buku Yasin bawaan sistem?</span>
+              <button id="btnResetToDefaultPdf" class="btn-text-danger" type="button">Kembalikan ke Berkas
+                Bawaan</button>
+            </div>
+          </div>
+
+          <!-- Tab 2: Informasi Judul & Ganti PIN -->
+          <div id="tabContentSettings" class="tab-pane hidden" role="tabpanel">
+            <form id="formPubSettings" class="admin-settings-form" onsubmit="return false;">
+              <div class="form-group">
+                <label for="inputPubTitle" class="form-label">Judul Buku Publikasi</label>
+                <input type="text" id="inputPubTitle" class="form-input" value="Surat Yasin & Tahlil" required>
+              </div>
+              <div class="form-group">
+                <label for="inputPubDedication" class="form-label">Keterangan / Dedikasi Keluarga</label>
+                <input type="text" id="inputPubDedication" class="form-input" value="Mengenang Almarhum / Almarhumah"
+                  required>
+              </div>
+              <div class="form-group">
+                <label for="inputNewPin" class="form-label">Ganti PIN Pengelola (Opsional)</label>
+                <input type="password" id="inputNewPin" class="form-input"
+                  placeholder="Ketik PIN baru jika ingin mengganti" maxlength="12">
+              </div>
+              <div class="form-actions">
+                <button id="btnSavePubSettings" class="btn-primary" type="submit">Simpan Informasi Publikasi</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Kotak Notifikasi Toast -->
+    <div id="toastNotification" class="toast-box hidden" role="status" aria-live="polite">
+      <span id="toastMessage">Tautan berhasil disalin.</span>
+    </div>
+  </div>
+
+  <script type="module" src="/src/main.js"></script>
+</body>
+
+</html>
