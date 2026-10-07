@@ -327,7 +327,7 @@ html, body {
   -webkit-user-select: none;
 }
 
-/* PageFlip Canvas Rendering */
+/* PageFlip HTML & Canvas Mode Rendering */
 .stf__parent {
   position: relative;
   display: block;
@@ -340,7 +340,37 @@ html, body {
 .stf__wrapper {
   position: relative;
   width: 100%;
+  height: 100%;
   box-sizing: border-box;
+}
+
+.stf__block {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  perspective: 2000px;
+}
+
+.stf__item {
+  display: none;
+  position: absolute;
+  transform-style: preserve-3d;
+  background-color: #FFFFFF;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+  overflow: hidden;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+
+.stf__outerShadow,
+.stf__innerShadow,
+.stf__hardShadow,
+.stf__hardInnerShadow {
+  position: absolute;
+  left: 0;
+  top: 0;
+  pointer-events: none;
 }
 
 .stf__parent canvas {
@@ -355,6 +385,37 @@ html, body {
   display: block;
   box-shadow: var(--shadow-book);
   border-radius: 4px;
+}
+
+/* Elemen Lembaran Halaman Buku Digital (Mode HTML Jernih HiDPI) */
+.flip-page-item {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  background-color: #FFFFFF;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.flip-page-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+  pointer-events: none;
+  -webkit-user-drag: none;
+  user-select: none;
+}
+
+/* Matikan 3D transform saat halaman dalam posisi diam/baca agar rendering setara mode scroll */
+.stf__item.--simple {
+  transform: none !important;
+  transform-style: flat !important;
+  -webkit-transform-style: flat !important;
 }
 
 /* Tombol Navigasi Mengambang Kiri & Kanan */

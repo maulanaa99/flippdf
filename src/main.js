@@ -230,7 +230,7 @@ function createOrUpdatePageFlip(imageUrls) {
   dom.flipbookContainer.style.width = `${totalW}px`;
   dom.flipbookContainer.style.height = `${pageHeight}px`;
 
-  // Inisialisasi PageFlip dalam mode Canvas (loadFromImages)
+  // Inisialisasi PageFlip dalam mode HTML DOM (memberikan ketajaman teks HiDPI / Retina penuh di ponsel)
   appState.pageFlipInstance = new PageFlip(dom.flipbookContainer, {
     width: pageWidth,
     height: pageHeight,
@@ -250,7 +250,22 @@ function createOrUpdatePageFlip(imageUrls) {
     swipeDistance: 20,
   });
 
-  appState.pageFlipInstance.loadFromImages(imageUrls);
+  // Siapkan elemen lembaran halaman HTML beresolusi tinggi
+  const pageElements = imageUrls.map((url, idx) => {
+    const pageEl = document.createElement('div');
+    pageEl.className = 'flip-page-item';
+    pageEl.dataset.density = (idx === 0 || idx === imageUrls.length - 1) ? 'hard' : 'soft';
+
+    const img = document.createElement('img');
+    img.src = url;
+    img.alt = `Halaman ${idx + 1}`;
+    img.draggable = false;
+    pageEl.appendChild(img);
+
+    return pageEl;
+  });
+
+  appState.pageFlipInstance.loadFromHTML(pageElements);
 
   // Penanganan saat lembaran halaman dibalik
   appState.pageFlipInstance.on('flip', (e) => {
@@ -281,7 +296,7 @@ async function setupFlipbookContainer(numPages) {
     dom.loadingStatusText.textContent = `Menyiapkan lembaran: halaman ${i} dari ${numPages}...`;
     dom.loadingProgressBar.style.width = `${Math.round(20 + (i / numPages) * 75)}%`;
 
-    const dataUrl = await pdfService.renderPageToImage(i, 1.6);
+    const dataUrl = await pdfService.renderPageToImage(i, 1.8);
     imageUrls.push(dataUrl);
 
     // Siapkan elemen untuk Mode Scroll Vertikal

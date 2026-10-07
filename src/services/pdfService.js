@@ -42,18 +42,19 @@ export class PdfService {
 
   async renderPageToCanvas(pageNumber, canvas, options = {}) {
     const page = await this.getPage(pageNumber);
-    const dpr = window.devicePixelRatio || 1;
-    const targetScale = options.scale || 1.5;
+    // Pastikan DPR minimal 2 agar teks Arab dan harakat sangat tajam di layar ponsel dan desktop
+    const dpr = Math.min(Math.max(window.devicePixelRatio || 1, 2), 3);
+    const targetScale = options.scale || 1.6;
+    const actualScale = targetScale * dpr;
 
-    // Viewport kalkulasi
-    const viewport = page.getViewport({ scale: targetScale });
-    canvas.width = Math.floor(viewport.width * dpr);
-    canvas.height = Math.floor(viewport.height * dpr);
-    canvas.style.width = `${Math.floor(viewport.width)}px`;
-    canvas.style.height = `${Math.floor(viewport.height)}px`;
+    // Viewport kalkulasi pada resolusi tinggi penuh
+    const viewport = page.getViewport({ scale: actualScale });
+    canvas.width = Math.floor(viewport.width);
+    canvas.height = Math.floor(viewport.height);
+    canvas.style.width = `${Math.floor(viewport.width / dpr)}px`;
+    canvas.style.height = `${Math.floor(viewport.height / dpr)}px`;
 
     const ctx = canvas.getContext('2d', { alpha: false });
-    ctx.scale(dpr, dpr);
 
     const renderContext = {
       canvasContext: ctx,
@@ -62,7 +63,7 @@ export class PdfService {
     };
 
     await page.render(renderContext).promise;
-    return { width: viewport.width, height: viewport.height };
+    return { width: Math.floor(viewport.width / dpr), height: Math.floor(viewport.height / dpr) };
   }
 
   async getPageThumbnail(pageNumber, targetWidth = 140) {
@@ -90,14 +91,14 @@ export class PdfService {
     return dataUrl;
   }
 
-  async renderPageToImage(pageNumber, scale = 1.6) {
+  async renderPageToImage(pageNumber, scale = 1.8) {
     if (this.pageCache.has(pageNumber)) {
       return this.pageCache.get(pageNumber);
     }
 
     const canvas = document.createElement('canvas');
     await this.renderPageToCanvas(pageNumber, canvas, { scale });
-    const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
+    const dataUrl = canvas.toDataURL('image/jpeg', 0.92);
     this.pageCache.set(pageNumber, dataUrl);
     return dataUrl;
   }
