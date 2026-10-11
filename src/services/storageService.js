@@ -36,8 +36,8 @@ export async function saveActivePdf(arrayBuffer, meta = {}) {
       name: meta.name || 'Dokumen_Yasin.pdf',
       size: cleanBuffer.byteLength || 0,
       updatedAt: new Date().toISOString(),
-      title: meta.title || 'Surat Yasin dan Tahlil',
-      dedication: meta.dedication || 'Mengenang Almarhum / Almarhumah',
+      title: meta.title || 'Surat Yasin & Tahlil',
+      dedication: meta.dedication || 'Mengenang Almarhumah Hj. Desiwati Asiah binti M. Ali Djohan',
     };
 
     store.put(record, KEY_ACTIVE_PDF);

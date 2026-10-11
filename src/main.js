@@ -23,7 +23,7 @@ const appState = {
   pageFlipInstance: null,
   pageImages: [],
   publicationTitle: 'Surat Yasin & Tahlil',
-  publicationDedication: 'Mengenang Almarhum / Almarhumah',
+  publicationDedication: 'Mengenang Almarhumah Hj. Desiwati Asiah binti M. Ali Djohan',
   adminAuthenticated: false,
   pendingPdfBuffer: null,
   pendingPdfMeta: null,
