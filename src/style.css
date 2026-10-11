@@ -409,6 +409,51 @@ html, body {
   pointer-events: none;
   -webkit-user-drag: none;
   user-select: none;
+  transition: opacity 0.25s ease-out;
+}
+
+/* Placeholder Elegan Lembaran Buku saat Memuat Secara Instan / On-Demand */
+.page-placeholder {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #FAF8F5;
+  border: 1px dashed var(--border-stone);
+  z-index: 2;
+  user-select: none;
+}
+
+.page-placeholder-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+
+.page-placeholder-num {
+  font-family: var(--font-ui);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  letter-spacing: 0.03em;
+}
+
+.page-placeholder-spinner {
+  width: 24px;
+  height: 24px;
+  border: 2px solid var(--border-stone);
+  border-top-color: var(--accent-gold);
+  border-radius: 50%;
+  animation: page-placeholder-spin 0.8s linear infinite;
+}
+
+@keyframes page-placeholder-spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* Matikan 3D transform saat halaman dalam posisi diam/baca agar rendering setara mode scroll */
@@ -491,13 +536,20 @@ html, body {
   box-shadow: var(--shadow-subtle);
   overflow: hidden;
   position: relative;
+  aspect-ratio: 1 / 1.414;
+  min-height: 380px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .scroll-page-item canvas,
 .scroll-page-item img {
   display: block;
   width: 100%;
-  height: auto;
+  height: 100%;
+  object-fit: contain;
+  transition: opacity 0.25s ease-out;
 }
 
 .scroll-page-number {

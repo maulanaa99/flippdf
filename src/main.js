@@ -155,32 +155,58 @@ function updateHeaderMetadata() {
 // ==========================================================================
 // Memuat dan Merender Dokumen PDF
 // ==========================================================================
+// Variabel pengatur antrean render lazy/on-demand di latar belakang
+let backgroundQueueRunning = false;
+let cancelBackgroundQueue = false;
+let scrollObserver = null;
+let thumbnailObserver = null;
+
+// ==========================================================================
+// Memuat dan Merender Dokumen PDF secara Instan (Lazy / On-Demand)
+// ==========================================================================
 async function loadAndRenderDocument(source) {
   showState('loading');
-  dom.loadingStatusText.textContent = 'Membaca data berkas PDF...';
-  dom.loadingProgressBar.style.width = '25%';
+  dom.loadingStatusText.textContent = 'Membuka lembaran buku...';
+  dom.loadingProgressBar.style.width = '35%';
 
   try {
+    cancelBackgroundQueue = true;
     const numPages = await pdfService.load(source);
     appState.totalPages = numPages;
     dom.totalPagesText.textContent = String(numPages);
     dom.inputJumpPage.max = String(numPages);
 
-    dom.loadingStatusText.textContent = 'Menyiapkan lembaran buku digital...';
-    dom.loadingProgressBar.style.width = '60%';
+    dom.loadingProgressBar.style.width = '70%';
 
-    // Siapkan wadah flipbook
-    await setupFlipbookContainer(numPages);
+    // Reset array cache gambar halaman
+    appState.pageImages = new Array(numPages).fill(null);
+
+    // Siapkan wadah flipbook dengan placeholder instan
+    createOrUpdatePageFlip(numPages);
+
+    // Siapkan elemen mode scroll vertikal
+    setupScrollItems(numPages);
 
     // Siapkan daftar cuplikan (thumbnails)
     setupThumbnails(numPages);
 
-    // Selesai memuat
+    // Render 1-3 halaman pembuka saja agar buku langsung terbuka tanpa menunggu
+    const initialPages = [ensurePageRendered(1)];
+    if (numPages >= 2) initialPages.push(ensurePageRendered(2));
+    if (numPages >= 3) initialPages.push(ensurePageRendered(3));
+    await Promise.all(initialPages);
+
+    appState.currentPage = 1;
+    dom.inputJumpPage.value = '1';
+
+    // Langsung buka flipbook ke pengguna
     dom.loadingProgressBar.style.width = '100%';
-    setTimeout(() => {
-      hideStates();
-      updateNavigationControls();
-    }, 200);
+    hideStates();
+    updateNavigationControls();
+
+    // Prefetch halaman terdekat dan jalankan background queue di latar belakang saat CPU senggang
+    prefetchNearbyPages(1);
+    startBackgroundQueue();
 
   } catch (error) {
     console.error('Kendala memuat PDF:', error);
@@ -189,8 +215,94 @@ async function loadAndRenderDocument(source) {
   }
 }
 
-// Fungsi membuat atau memperbarui instance PageFlip berbasis canvas murni
-function createOrUpdatePageFlip(imageUrls) {
+// Memastikan satu halaman telah dirender dan disematkan ke DOM
+async function ensurePageRendered(pageNum) {
+  if (pageNum < 1 || pageNum > appState.totalPages) return null;
+
+  if (appState.pageImages[pageNum - 1]) {
+    return appState.pageImages[pageNum - 1];
+  }
+
+  try {
+    const dataUrl = await pdfService.renderPageToImage(pageNum, 1.8);
+    appState.pageImages[pageNum - 1] = dataUrl;
+
+    // Perbarui semua elemen halaman di Flipbook (termasuk klon animasi PageFlip jika ada)
+    const flipItems = dom.flipbookContainer.querySelectorAll(`.flip-page-item[data-page="${pageNum}"]`);
+    flipItems.forEach((item) => {
+      const img = item.querySelector('img');
+      const placeholder = item.querySelector('.page-placeholder');
+      if (img) {
+        img.src = dataUrl;
+        img.style.display = 'block';
+      }
+      if (placeholder) {
+        placeholder.style.display = 'none';
+      }
+    });
+
+    // Perbarui elemen halaman di Mode Scroll
+    const scrollItem = document.getElementById(`scrollPage-${pageNum}`);
+    if (scrollItem) {
+      const img = scrollItem.querySelector('img');
+      const placeholder = scrollItem.querySelector('.page-placeholder');
+      if (img) {
+        img.src = dataUrl;
+        img.style.display = 'block';
+      }
+      if (placeholder) {
+        placeholder.style.display = 'none';
+      }
+    }
+
+    return dataUrl;
+  } catch (err) {
+    console.warn(`Gagal merender halaman ${pageNum}:`, err);
+    return null;
+  }
+}
+
+// Render prioritas untuk halaman yang sedang dibaca dan halaman sekitarnya (buffer)
+async function prefetchNearbyPages(currentPage) {
+  const isMobile = window.innerWidth < 768;
+  const spreadRange = isMobile ? [-1, 0, 1, 2] : [-2, -1, 0, 1, 2, 3];
+
+  for (const offset of spreadRange) {
+    const p = currentPage + offset;
+    if (p >= 1 && p <= appState.totalPages && !appState.pageImages[p - 1]) {
+      ensurePageRendered(p);
+    }
+  }
+}
+
+// Antrean latar belakang untuk merender sisa halaman saat browser idle
+async function startBackgroundQueue() {
+  cancelBackgroundQueue = false;
+  if (backgroundQueueRunning) return;
+  backgroundQueueRunning = true;
+
+  try {
+    for (let p = 1; p <= appState.totalPages; p++) {
+      if (cancelBackgroundQueue) break;
+      if (!appState.pageImages[p - 1]) {
+        await new Promise((resolve) => {
+          if ('requestIdleCallback' in window) {
+            window.requestIdleCallback(() => resolve(), { timeout: 120 });
+          } else {
+            setTimeout(resolve, 50);
+          }
+        });
+        if (cancelBackgroundQueue) break;
+        await ensurePageRendered(p);
+      }
+    }
+  } finally {
+    backgroundQueueRunning = false;
+  }
+}
+
+// Inisialisasi atau perbarui instance PageFlip dengan struktur lembaran instan
+function createOrUpdatePageFlip(numPages) {
   if (appState.pageFlipInstance) {
     try {
       appState.pageFlipInstance.destroy();
@@ -208,29 +320,24 @@ function createOrUpdatePageFlip(imageUrls) {
 
   let pageWidth, pageHeight;
   if (isMobile) {
-    // Mode satu halaman (portrait) pada ponsel
     const maxW = Math.max(260, Math.min(availW, 440));
     const maxH = Math.max(380, availH);
     pageWidth = Math.floor(Math.min(maxW, maxH / 1.414));
     pageHeight = Math.floor(pageWidth * 1.414);
   } else {
-    // Mode dua halaman (landscape spread) pada desktop
     const maxBookW = Math.min(availW, 1100);
     const maxBookH = Math.min(availH, 750);
     pageWidth = Math.floor(Math.min(maxBookW / 2, maxBookH / 1.414));
     pageHeight = Math.floor(pageWidth * 1.414);
   }
 
-  // Batas bawah aman jika elemen viewport belum selesai mengukur
   if (pageWidth < 220) pageWidth = isMobile ? 320 : 440;
   if (pageHeight < 310) pageHeight = Math.floor(pageWidth * 1.414);
 
-  // Set ukuran eksplisit pada container agar pembungkus tidak kolaps
   const totalW = pageWidth * (isMobile ? 1 : 2);
   dom.flipbookContainer.style.width = `${totalW}px`;
   dom.flipbookContainer.style.height = `${pageHeight}px`;
 
-  // Inisialisasi PageFlip dalam mode HTML DOM (memberikan ketajaman teks HiDPI / Retina penuh di ponsel)
   appState.pageFlipInstance = new PageFlip(dom.flipbookContainer, {
     width: pageWidth,
     height: pageHeight,
@@ -248,26 +355,47 @@ function createOrUpdatePageFlip(imageUrls) {
     useMouseEvents: true,
     mobileScrollSupport: false,
     swipeDistance: 20,
+    startPage: Math.max(0, (appState.currentPage || 1) - 1),
   });
 
-  // Siapkan elemen lembaran halaman HTML beresolusi tinggi
-  const pageElements = imageUrls.map((url, idx) => {
+  const pageElements = [];
+  for (let idx = 0; idx < numPages; idx++) {
+    const pageNum = idx + 1;
     const pageEl = document.createElement('div');
     pageEl.className = 'flip-page-item';
-    pageEl.dataset.density = (idx === 0 || idx === imageUrls.length - 1) ? 'hard' : 'soft';
+    pageEl.dataset.page = String(pageNum);
+    pageEl.dataset.density = (idx === 0 || idx === numPages - 1) ? 'hard' : 'soft';
+
+    const placeholder = document.createElement('div');
+    placeholder.className = 'page-placeholder';
+    placeholder.innerHTML = `
+      <div class="page-placeholder-inner">
+        <span class="page-placeholder-num">Halaman ${pageNum}</span>
+        <span class="page-placeholder-spinner" aria-hidden="true"></span>
+      </div>
+    `;
 
     const img = document.createElement('img');
-    img.src = url;
-    img.alt = `Halaman ${idx + 1}`;
+    img.alt = `Halaman ${pageNum}`;
     img.draggable = false;
-    pageEl.appendChild(img);
 
-    return pageEl;
-  });
+    const existingUrl = appState.pageImages[idx];
+    if (existingUrl) {
+      img.src = existingUrl;
+      img.style.display = 'block';
+      placeholder.style.display = 'none';
+    } else {
+      img.style.display = 'none';
+      placeholder.style.display = 'flex';
+    }
+
+    pageEl.appendChild(placeholder);
+    pageEl.appendChild(img);
+    pageElements.push(pageEl);
+  }
 
   appState.pageFlipInstance.loadFromHTML(pageElements);
 
-  // Penanganan saat lembaran halaman dibalik
   appState.pageFlipInstance.on('flip', (e) => {
     const pageIndex = typeof e.data === 'number' ? e.data : (appState.pageFlipInstance.getCurrentPageIndex() || 0);
     appState.currentPage = pageIndex + 1;
@@ -275,9 +403,9 @@ function createOrUpdatePageFlip(imageUrls) {
     updateNavigationControls();
     audioService.playPageTurn();
     highlightActiveThumbnail(appState.currentPage);
+    prefetchNearbyPages(appState.currentPage);
   });
 
-  // Sinkronisasi posisi halaman jika telah membaca ke halaman tertentu
   if (appState.currentPage > 1) {
     try {
       appState.pageFlipInstance.flip(appState.currentPage - 1);
@@ -285,54 +413,113 @@ function createOrUpdatePageFlip(imageUrls) {
   }
 }
 
-// Menyiapkan lembaran buku digital untuk Flipbook dan Scroll
-async function setupFlipbookContainer(numPages) {
-  dom.flipbookContainer.innerHTML = '';
+// Menyiapkan elemen mode Scroll Vertikal
+function setupScrollItems(numPages) {
   dom.scrollPagesList.innerHTML = '';
 
-  const imageUrls = [];
-
   for (let i = 1; i <= numPages; i++) {
-    dom.loadingStatusText.textContent = `Menyiapkan lembaran: halaman ${i} dari ${numPages}...`;
-    dom.loadingProgressBar.style.width = `${Math.round(20 + (i / numPages) * 75)}%`;
-
-    const dataUrl = await pdfService.renderPageToImage(i, 1.8);
-    imageUrls.push(dataUrl);
-
-    // Siapkan elemen untuk Mode Scroll Vertikal
     const scrollItem = document.createElement('div');
     scrollItem.className = 'scroll-page-item';
     scrollItem.id = `scrollPage-${i}`;
+    scrollItem.dataset.page = String(i);
+
+    const placeholder = document.createElement('div');
+    placeholder.className = 'page-placeholder';
+    placeholder.innerHTML = `
+      <div class="page-placeholder-inner">
+        <span class="page-placeholder-num">Halaman ${i}</span>
+        <span class="page-placeholder-spinner" aria-hidden="true"></span>
+      </div>
+    `;
 
     const img = document.createElement('img');
-    img.src = dataUrl;
     img.alt = `Halaman ${i}`;
-    img.loading = i > 3 ? 'lazy' : 'eager';
-    scrollItem.appendChild(img);
+
+    const existingUrl = appState.pageImages[i - 1];
+    if (existingUrl) {
+      img.src = existingUrl;
+      img.style.display = 'block';
+      placeholder.style.display = 'none';
+    } else {
+      img.style.display = 'none';
+      placeholder.style.display = 'flex';
+    }
 
     const badge = document.createElement('span');
     badge.className = 'scroll-page-number';
     badge.textContent = `Halaman ${i}`;
+
+    scrollItem.appendChild(placeholder);
+    scrollItem.appendChild(img);
     scrollItem.appendChild(badge);
 
     dom.scrollPagesList.appendChild(scrollItem);
   }
 
-  appState.pageImages = imageUrls;
-  createOrUpdatePageFlip(imageUrls);
-
-  appState.currentPage = 1;
-  dom.inputJumpPage.value = '1';
-  updateNavigationControls();
+  initScrollObserver();
 }
 
-// Menyiapkan Bilah Cuplikan (Thumbnails)
-async function setupThumbnails(numPages) {
+// Observer untuk memuat lembaran mode scroll secara dinamis saat digulir
+function initScrollObserver() {
+  if (scrollObserver) {
+    scrollObserver.disconnect();
+  }
+
+  scrollObserver = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) {
+        const pageNum = parseInt(entry.target.dataset.page, 10);
+        if (pageNum) {
+          ensurePageRendered(pageNum);
+          if (entry.intersectionRatio > 0.5 && appState.viewMode === 'scroll') {
+            appState.currentPage = pageNum;
+            dom.inputJumpPage.value = String(pageNum);
+            highlightActiveThumbnail(pageNum);
+            updateNavigationControls();
+          }
+        }
+      }
+    });
+  }, {
+    rootMargin: '350px 0px 350px 0px',
+    threshold: [0, 0.5],
+  });
+
+  const scrollItems = dom.scrollPagesList.querySelectorAll('.scroll-page-item');
+  scrollItems.forEach((item) => scrollObserver.observe(item));
+}
+
+// Menyiapkan Bilah Cuplikan (Thumbnails) dengan IntersectionObserver hemat daya
+function setupThumbnails(numPages) {
   dom.thumbnailsList.innerHTML = '';
+
+  if (thumbnailObserver) {
+    thumbnailObserver.disconnect();
+  }
+
+  thumbnailObserver = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) {
+        const pageNum = parseInt(entry.target.dataset.page, 10);
+        const img = entry.target.querySelector('img');
+        if (pageNum && img && !img.src) {
+          pdfService.getPageThumbnail(pageNum, 110)
+            .then((thumbUrl) => {
+              img.src = thumbUrl;
+            })
+            .catch((e) => console.warn(`Thumbnail page ${pageNum} error:`, e));
+        }
+        thumbnailObserver.unobserve(entry.target);
+      }
+    });
+  }, {
+    root: dom.thumbnailsDrawer,
+    rootMargin: '100px',
+  });
 
   for (let i = 1; i <= numPages; i++) {
     const card = document.createElement('div');
-    card.className = `thumbnail-card ${i === 1 ? 'active' : ''}`;
+    card.className = `thumbnail-card ${i === appState.currentPage ? 'active' : ''}`;
     card.setAttribute('role', 'listitem');
     card.setAttribute('tabindex', '0');
     card.setAttribute('aria-label', `Buka Halaman ${i}`);
@@ -352,7 +539,6 @@ async function setupThumbnails(numPages) {
     card.appendChild(numSpan);
     dom.thumbnailsList.appendChild(card);
 
-    // Klik untuk lompat ke halaman
     card.addEventListener('click', () => {
       jumpToPage(i);
     });
@@ -364,21 +550,13 @@ async function setupThumbnails(numPages) {
       }
     });
 
-    // Ambil gambar thumbnail secara bertahap
-    setTimeout(async () => {
-      try {
-        const thumbUrl = await pdfService.getPageThumbnail(i, 110);
-        img.src = thumbUrl;
-      } catch (e) {
-        console.warn(`Thumbnail page ${i} error:`, e);
-      }
-    }, i * 60);
+    thumbnailObserver.observe(card);
   }
 }
 
 function highlightActiveThumbnail(pageNumber) {
   const cards = dom.thumbnailsList.querySelectorAll('.thumbnail-card');
-  cards.forEach(c => {
+  cards.forEach((c) => {
     if (c.dataset.page === String(pageNumber)) {
       c.classList.add('active');
       c.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
@@ -393,6 +571,8 @@ function jumpToPage(targetPage) {
   const page = Math.max(1, Math.min(targetPage, appState.totalPages));
   appState.currentPage = page;
   dom.inputJumpPage.value = String(page);
+
+  prefetchNearbyPages(page);
 
   if (appState.viewMode === 'flip' && appState.pageFlipInstance) {
     appState.pageFlipInstance.flip(page - 1);
@@ -409,6 +589,7 @@ function jumpToPage(targetPage) {
 
 function turnNextPage() {
   if (appState.currentPage < appState.totalPages) {
+    prefetchNearbyPages(appState.currentPage + 1);
     if (appState.viewMode === 'flip' && appState.pageFlipInstance) {
       try {
         appState.pageFlipInstance.flipNext();
@@ -423,6 +604,7 @@ function turnNextPage() {
 
 function turnPrevPage() {
   if (appState.currentPage > 1) {
+    prefetchNearbyPages(appState.currentPage - 1);
     if (appState.viewMode === 'flip' && appState.pageFlipInstance) {
       try {
         appState.pageFlipInstance.flipPrev();
@@ -990,8 +1172,8 @@ function bindEventListeners() {
   window.addEventListener('resize', () => {
     clearTimeout(resizeTimer);
     resizeTimer = setTimeout(() => {
-      if (appState.pageImages && appState.pageImages.length && appState.viewMode === 'flip') {
-        createOrUpdatePageFlip(appState.pageImages);
+      if (appState.totalPages && appState.viewMode === 'flip') {
+        createOrUpdatePageFlip(appState.totalPages);
       }
     }, 250);
   });

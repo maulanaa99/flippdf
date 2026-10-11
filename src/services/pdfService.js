@@ -9,11 +9,13 @@ export class PdfService {
     this.numPages = 0;
     this.pageCache = new Map();
     this.thumbnailCache = new Map();
+    this.inFlightRenders = new Map();
   }
 
   async load(source) {
     this.pageCache.clear();
     this.thumbnailCache.clear();
+    this.inFlightRenders.clear();
 
     let docInit;
     if (typeof source === 'string') {
@@ -96,11 +98,24 @@ export class PdfService {
       return this.pageCache.get(pageNumber);
     }
 
-    const canvas = document.createElement('canvas');
-    await this.renderPageToCanvas(pageNumber, canvas, { scale });
-    const dataUrl = canvas.toDataURL('image/jpeg', 0.92);
-    this.pageCache.set(pageNumber, dataUrl);
-    return dataUrl;
+    if (this.inFlightRenders.has(pageNumber)) {
+      return this.inFlightRenders.get(pageNumber);
+    }
+
+    const renderTask = (async () => {
+      try {
+        const canvas = document.createElement('canvas');
+        await this.renderPageToCanvas(pageNumber, canvas, { scale });
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.92);
+        this.pageCache.set(pageNumber, dataUrl);
+        return dataUrl;
+      } finally {
+        this.inFlightRenders.delete(pageNumber);
+      }
+    })();
+
+    this.inFlightRenders.set(pageNumber, renderTask);
+    return renderTask;
   }
 }
 
